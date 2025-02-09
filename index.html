@@ -1,11 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta charset="utf-8" />
+    <title>MapLibre GL JS + PMTiles (1ファイル版) の例</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <!-- MapLibre GL JS の CSS -->
+    <link href="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.css" rel="stylesheet" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
 </head>
+
 <body>
-    
+    <div id="map"></div>
+
+    <!-- MapLibre GL JS -->
+    <script src="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.js"></script>
+    <!-- PMTiles の UMD ビルドを読み込む -->
+    <script src="https://unpkg.com/@protomaps/pmtiles@4.2.1/dist/pmtiles.umd.js"></script>
+
+    <script>
+        // 必要に応じてワーカーの URL を設定（パフォーマンス向上のため）
+        PMTiles.setWorkerURL("https://cdn.jsdelivr.net/npm/pmtiles@4.2.1/dist/pmtiles.worker.min.js");
+
+        // カスタムプロトコル "pmtiles://" を登録
+        PMTiles.registerProtocol("pmtiles", function (url) {
+            // url の例: "pmtiles://output.pmtiles" → http://127.0.0.1:8080/output.pmtiles に変換
+            const pmtilesUrl = "http://127.0.0.1:8080/" + url.substring("pmtiles://".length);
+            return new PMTiles(pmtilesUrl);
+        });
+
+        // MapLibre GL JS のマップを作成
+        const map = new maplibregl.Map({
+            container: "map",
+            style: {
+                version: 8,
+                sources: {
+                    "pmtiles-source": {
+                        type: "vector",
+                        // カスタムプロトコルを利用して、単一の PMTiles ファイルからタイルを取得
+                        tiles: ["pmtiles://output.pmtiles/{z}/{x}/{y}"],
+                        minzoom: 0,
+                        maxzoom: 14
+                    }
+                },
+                layers: [
+                    {
+                        id: "pmtiles-layer",
+                        type: "fill",
+                        source: "pmtiles-source",
+                        // PMTiles 内のレイヤー名に合わせる（例："default"）
+                        "source-layer": "default",
+                        paint: {
+                            "fill-color": "#00ff00",
+                            "fill-opacity": 0.5
+                        }
+                    }
+                ]
+            },
+            center: [135, 35],
+            zoom: 5
+        });
+    </script>
 </body>
+
 </html>
