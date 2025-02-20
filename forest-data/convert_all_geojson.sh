@@ -4,7 +4,7 @@
 for file in *.geojson; do
     output="${file%.geojson}.topojson"
     echo "Converting $file to $output"
-    geo2topo -q 1e8 "$file" > "$output"
+    geo2topo -q 1e6 "$file" > "$output"
 done
 
 echo "All files converted successfully!"
