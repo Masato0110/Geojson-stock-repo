@@ -3,4 +3,6 @@
 *.py
 mojmap-geojson/
 forest-geojson/
+venv/
 .DS_Store
+元データ/
