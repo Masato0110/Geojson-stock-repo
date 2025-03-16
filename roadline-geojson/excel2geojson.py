@@ -104,7 +104,7 @@ def main():
         sys.exit(1)
 
     for sheet in excel_file.sheet_names:
-        if sheet == 'Sheet1': continue
+        if sheet == 'Sheet1' or sheet == 'Restored': continue
         try:
             df = pd.read_excel(excel_file, sheet_name=sheet)
         except Exception as e:
@@ -209,7 +209,7 @@ def main():
         print(f"GeoJSONファイルの出力エラー: {e}", file=sys.stderr)
         sys.exit(1)
     
-    print(f"GeoJSONファイルが正常に出力されました: {args.output}")
+    # print(f"GeoJSONファイルが正常に出力されました: {args.output}")
 
 if __name__ == "__main__":
     main()
