@@ -126,7 +126,7 @@ def main():
                     left_features.append({
                         "geometry": [new_l_lon, new_l_lat],
                         "properties": {
-                            "路線名": sheet,
+                            "路線名": sheet.replace('+', ''),
                             "図面番号": row["図面番号"],
                             "座標番号": l_num,
                             "X座標": orig_l_x,
@@ -145,7 +145,7 @@ def main():
                     right_features.append({
                         "geometry": [new_r_lon, new_r_lat],
                         "properties": {
-                            "路線名": sheet,
+                            "路線名": sheet.replace('+', ''),
                             "図面番号": row["図面番号"],
                             "座標番号": r_num,
                             "X座標": orig_r_x,

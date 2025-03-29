@@ -2,4 +2,6 @@
 venv/
 .DS_Store
 ★道路台帳図/
+node-data/
 元データ/
+node_modules/
