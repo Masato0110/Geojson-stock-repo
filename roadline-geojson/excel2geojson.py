@@ -5,6 +5,7 @@ import pandas as pd
 import json
 import sys
 import argparse
+import re
 
 def calc_lat_lon(x, y):
     """ 平面直角座標を緯度経度に変換する
@@ -113,6 +114,7 @@ def main():
     
         left_features = []
         right_features = []
+        # print(sheet, re.sub(r' \([2-9]\)', '', sheet).replace('+', ''))
         
         # 各行ごとに左側・右側のデータを処理
         for idx, row in df.iterrows():
@@ -126,7 +128,7 @@ def main():
                     left_features.append({
                         "geometry": [new_l_lon, new_l_lat],
                         "properties": {
-                            "路線名": sheet.replace('+', ''),
+                            "路線名": re.sub(r' \([2-9]\)', '', sheet).replace('+', ''),
                             "図面番号": row["図面番号"],
                             "座標番号": l_num,
                             "X座標": orig_l_x,
@@ -145,7 +147,7 @@ def main():
                     right_features.append({
                         "geometry": [new_r_lon, new_r_lat],
                         "properties": {
-                            "路線名": sheet.replace('+', ''),
+                            "路線名": re.sub(r' \([2-9]\)', '', sheet).replace('+', ''),
                             "図面番号": row["図面番号"],
                             "座標番号": r_num,
                             "X座標": orig_r_x,
@@ -175,7 +177,7 @@ def main():
                 "coordinates": [polygon_coords]
             },
             "properties": {
-                "路線名": sheet  # シート名をプロパティとして記録
+                "路線名": re.sub(r' \([2-9]\)', '', sheet).replace('+', '')  # シート名をプロパティとして記録
             }
         }
         all_features.append(polygon_feature)

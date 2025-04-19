@@ -1,7 +1,10 @@
 *.geojson
+*.json
+*.py
+*.sh
+*.xlsm
 venv/
 .DS_Store
 ★道路台帳図/
 元データ/
 node_modules/
-*.json
