@@ -5,8 +5,8 @@
 venv/
 .DS_Store
 ★道路台帳図/
+⭐︎flatgeobuf/
+⭐︎geojson/
 元データ/
 node_modules/
-*-geojson*/
 package*
-google-cloud-sdk/
