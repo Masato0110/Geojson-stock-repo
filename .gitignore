@@ -5,8 +5,8 @@
 venv/
 .DS_Store
 ★道路台帳図/
-⭐︎flatgeobuf/
-⭐︎geojson/
+☆flatgeobuf/
+☆geojson/
 元データ/
 node_modules/
 package*
