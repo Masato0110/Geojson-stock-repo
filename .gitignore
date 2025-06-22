@@ -10,3 +10,5 @@ venv/
 元データ/
 node_modules/
 package*
+forest.pmtiles
+forest2.pmtiles
