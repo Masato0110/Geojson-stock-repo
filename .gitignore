@@ -18,3 +18,4 @@ temp/
 08_海岸保全区域/
 *.md*
 *.xlsx
+.gitignore
