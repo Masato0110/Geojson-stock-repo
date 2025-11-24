@@ -21,3 +21,4 @@ temp/
 *.zip
 .gitignore
 *.xml
+*.log
