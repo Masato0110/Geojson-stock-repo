@@ -164,6 +164,10 @@
             &:hover {
                 background-color: #455A64;
             }
+            &:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+            }
         }
         .action-buttons {
             display: flex;
@@ -185,6 +189,27 @@
             }
         }
 
+        #size-input {
+            margin: clamp(20px, 3vh, 35px) 0;
+            text-align: center;
+            font-size: 14px;
+            & table {
+                margin: 0 auto;
+                border-collapse: collapse;
+            }
+            & input {
+                width: 75px;
+                text-align: center;
+                margin: 0 5px 0 2px;
+                padding: 2px 5px;
+                border: 1px solid #ccc;
+                border-radius: 3px;
+                letter-spacing: 3px;
+            }
+            & td {
+                padding: 3px 5px;
+            }
+        }
         .key-guides {
             margin: 20px auto;
             text-align: left;
@@ -234,7 +259,7 @@
                 display: none;
             }
         }
-        video {
+        #guide-video {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -273,7 +298,7 @@
         <div id="headerLeft"><span class="fa fa-crop-simple"></span> PDF-Cropper<span id="ver">（ver.1.0）</span></div>
         <div id="headerRight">
             <span id="logUpdate" class="blinking"></span>&ensp;
-            <span class="fa fa-clock-rotate-left"></span> R8.1.9
+            <span class="fa fa-clock-rotate-left"></span> R8.1.16
         </div>
     </div>
 
@@ -284,6 +309,7 @@
             </div>
 
             <div id="controls" style="pointer-events: none; opacity: 0.5;">
+            <!-- <div id="controls"> -->
                 <p id="fileNameText">ファイルが選択されていません</p>
                 <div class="nav-btns">
                     <button id="prevPage">◀</button>
@@ -291,13 +317,28 @@
                     <button id="nextPage">▶</button>
                 </div>
 
-                <!-- <ul>
-                    <li>マウス操作でクロップ範囲を自由に編集でき、好きな範囲のPDFを作成できます。</li>
-                    <li>複数ページのPDFでも、各ページに異なるクロップ範囲を設定できます。</li>
-                    <li>ページを戻ったり再読込すると、編集内容が失われるため注意してください。</li>
-                    <li>すべての処理は端末上で行われ、ファイルが外部に送信されることはありません。</li>
-                </ul> -->
-
+                <div id="size-input">
+                    <table style="margin-bottom: 10px;">
+                        <tr>
+                            <td>X</td>
+                            <td><input id="inputX" type="number" min="0">px</td>
+                            <td>Y</td>
+                            <td><input id="inputY" type="number" min="0">px</td>
+                        </tr>
+                        <tr>
+                            <td>横幅</td>
+                            <td><input id="inputWidth" type="number" min="0">px</td>
+                            <td>高さ</td>
+                            <td><input id="inputHeight" type="number" min="0">px</td>
+                        </tr>
+                    </table>
+                    <div>
+                        <button style="width: 75px; padding: 5px 10px;" id="btnA4Landscape">A4横</button>
+                        <button style="width: 75px; padding: 5px 10px;" id="btnA4Portrait">A4縦</button>
+                        <button style="width: 75px; padding: 5px 10px;" id="btnA3Landscape">A3横</button>
+                        <button style="width: 75px; padding: 5px 10px;" id="btnA3Portrait">A3縦</button>
+                    </div>
+                </div>
                 <div class="key-guides">
                     <table>
                         <tr><td><i class="fa fa-arrow-left"></i></td><td>前のページへ移動</td></tr>
@@ -309,7 +350,7 @@
                 </div>
 
                 <div class="action-buttons">
-                    <button id="btnApplyAll">この編集を全ページへ反映</button>
+                    <button id="btnApplyAll" style="display: none;">この編集を全ページへ反映</button>
                     <button id="btnExtractCurrent">このページを出力</button>
                     <button id="btnSaveAll">全ページを出力</button>
                     <button id="btnResetPage">このページを<span style="color: #F57C00;">リセット</span></button>
@@ -334,7 +375,7 @@
             <div id="monitor-size-info">
                 <p><i class="fa fa-circle-exclamation"></i> ウィンドウを大きくするかズームレベルを小さくしてください</p>
             </div>
-            <video id="guide-video" src="https://masato0110.github.io/Geojson-stock-repo/PDF-Cropper/cropper-video.mov" autoplay loop muted></video>
+             <img id="guide-video" src="https://masato0110.github.io/Geojson-stock-repo/PDF-Cropper/cropper-video.gif" alt="">
         </div>
     </div>
 
@@ -353,6 +394,22 @@
         const btnApplyAll = document.getElementById('btnApplyAll');
         const btnResetPage = document.getElementById('btnResetPage');
         const btnResetAll = document.getElementById('btnResetAll');
+        const inputX = document.getElementById('inputX');
+        const inputY = document.getElementById('inputY');
+        const inputWidth = document.getElementById('inputWidth');
+        const inputHeight = document.getElementById('inputHeight');
+        const btnA4Landscape = document.getElementById('btnA4Landscape');
+        const btnA4Portrait = document.getElementById('btnA4Portrait');
+        const btnA3Landscape = document.getElementById('btnA3Landscape');
+        const btnA3Portrait = document.getElementById('btnA3Portrait');
+
+        // A4/A3サイズ定数 (ポイント単位: 1pt = 1/72 inch)
+        const PAGE_SIZES = {
+            A4_LANDSCAPE: { w: 841.89, h: 595.28 },  // A4横 (297mm x 210mm)
+            A4_PORTRAIT: { w: 595.28, h: 841.89 },   // A4縦 (210mm x 297mm)
+            A3_LANDSCAPE: { w: 1190.55, h: 841.89 }, // A3横 (420mm x 297mm)
+            A3_PORTRAIT: { w: 841.89, h: 1190.55 }   // A3縦 (297mm x 420mm)
+        };
 
         // ページごとのクロップ状態を保持（PDF座標系）
         const pageCropStates = new Map();
@@ -374,39 +431,121 @@
         let isUserCropping = false;
         let pendingHistoryState = null;
         let cropperEventsBound = false;
+        let isUpdatingInputs = false; // テキストボックス更新中フラグ
 
-        // ページ回転を考慮した座標変換
-        function convertCanvasToPdfCoords(canvasX, canvasY, canvasW, canvasH) {
+        // ========== 座標変換関数 ==========
+        
+        // PDF座標から表示座標への変換（テキストボックス表示用、見た目の左下起点）
+        function convertPdfToDisplayCoords(pdfX, pdfY, pdfW, pdfH) {
             const rotation = currentPageRotation || 0;
             const pageW = currentPdfViewport.width;
             const pageH = currentPdfViewport.height;
+            let displayX, displayY, displayW, displayH;
 
+            switch (rotation) {
+                case 0:
+                    displayX = pdfX;
+                    displayY = pdfY;
+                    displayW = pdfW;
+                    displayH = pdfH;
+                    break;
+                case 90:
+                    displayX = pdfY;
+                    displayY = pdfX;
+                    displayW = pdfH;
+                    displayH = pdfW;
+                    break;
+                case 180:
+                    displayX = pageW - pdfX - pdfW;
+                    displayY = pageH - pdfY - pdfH;
+                    displayW = pdfW;
+                    displayH = pdfH;
+                    break;
+                case 270:
+                    displayX = pageH - pdfY - pdfH;
+                    displayY = pageW - pdfX - pdfW;
+                    displayW = pdfH;
+                    displayH = pdfW;
+                    break;
+                default:
+                    displayX = pdfX;
+                    displayY = pdfY;
+                    displayW = pdfW;
+                    displayH = pdfH;
+            }
+
+            return { x: Math.round(displayX), y: Math.round(displayY), w: Math.round(displayW), h: Math.round(displayH) };
+        }
+
+        // 表示座標からPDF座標への変換（テキストボックス入力からPDF内部座標へ）
+        function convertDisplayToPdfCoords(displayX, displayY, displayW, displayH) {
+            const rotation = currentPageRotation || 0;
+            const pageW = currentPdfViewport.width;
+            const pageH = currentPdfViewport.height;
             let pdfX, pdfY, pdfW, pdfH;
 
             switch (rotation) {
                 case 0:
-                    // 回転なし
+                    pdfX = displayX;
+                    pdfY = displayY;
+                    pdfW = displayW;
+                    pdfH = displayH;
+                    break;
+                case 90:
+                    pdfX = displayY;
+                    pdfY = displayX;
+                    pdfW = displayH;
+                    pdfH = displayW;
+                    break;
+                case 180:
+                    pdfX = pageW - displayX - displayW;
+                    pdfY = pageH - displayY - displayH;
+                    pdfW = displayW;
+                    pdfH = displayH;
+                    break;
+                case 270:
+                    pdfX = pageW - displayY - displayH;
+                    pdfY = pageH - displayX - displayW;
+                    pdfW = displayH;
+                    pdfH = displayW;
+                    break;
+                default:
+                    pdfX = displayX;
+                    pdfY = displayY;
+                    pdfW = displayW;
+                    pdfH = displayH;
+            }
+
+            return { x: Math.round(pdfX), y: Math.round(pdfY), w: Math.round(pdfW), h: Math.round(pdfH) };
+        }
+
+        // キャンバス座標からPDF座標への変換（Cropperイベント用）
+        function convertCanvasToPdfCoords(canvasX, canvasY, canvasW, canvasH) {
+            const rotation = currentPageRotation || 0;
+            const pageW = currentPdfViewport.width;
+            const pageH = currentPdfViewport.height;
+            let pdfX, pdfY, pdfW, pdfH;
+
+            switch (rotation) {
+                case 0:
                     pdfX = canvasX;
                     pdfY = pageH - canvasY - canvasH;
                     pdfW = canvasW;
                     pdfH = canvasH;
                     break;
                 case 90:
-                    // 90度回転（時計回り）
                     pdfX = canvasY;
                     pdfY = canvasX;
                     pdfW = canvasH;
                     pdfH = canvasW;
                     break;
                 case 180:
-                    // 180度回転
                     pdfX = pageW - canvasX - canvasW;
                     pdfY = canvasY;
                     pdfW = canvasW;
                     pdfH = canvasH;
                     break;
                 case 270:
-                    // 270度回転（反時計回り）
                     pdfX = pageH - canvasY - canvasH;
                     pdfY = pageW - canvasX - canvasW;
                     pdfW = canvasH;
@@ -545,6 +684,80 @@
                 height: canvas.h * RENDER_SCALE
             });
             suppressCropEvent = false;
+            updateInputsFromState(state);
+        }
+
+        // テキストボックスを状態から更新
+        function updateInputsFromState(state) {
+            if (!state || isUpdatingInputs) return;
+            isUpdatingInputs = true;
+            
+            const display = convertPdfToDisplayCoords(state.x, state.y, state.w, state.h);
+            
+            inputX.value = display.x;
+            inputY.value = display.y;
+            inputWidth.value = display.w;
+            inputHeight.value = display.h;
+            isUpdatingInputs = false;
+        }
+
+        // 状態をテキストボックスから更新
+        function updateStateFromInputs() {
+            if (isUpdatingInputs || !cropper || !currentPdfViewport) return;
+            
+            const displayX = Math.max(0, parseInt(inputX.value) || 0);
+            const displayY = Math.max(0, parseInt(inputY.value) || 0);
+            const displayW = Math.max(0, parseInt(inputWidth.value) || 0);
+            const displayH = Math.max(0, parseInt(inputHeight.value) || 0);
+            
+            const pageW = currentPdfViewport.width;
+            const pageH = currentPdfViewport.height;
+            
+            const pdf = convertDisplayToPdfCoords(displayX, displayY, displayW, displayH);
+            
+            // 境界チェック
+            let { x, y, w, h } = pdf;
+            x = Math.max(0, Math.min(x, pageW));
+            y = Math.max(0, Math.min(y, pageH));
+            if (x + w > pageW) w = Math.max(0, pageW - x);
+            if (y + h > pageH) h = Math.max(0, pageH - y);
+            
+            const state = { x, y, w, h };
+            pageCropStates.set(currentPage, state);
+            applyStateToCropper(state);
+            pushHistory();
+        }
+
+        // A4/A3ボタンの有効/無効を更新
+        function updatePageSizeButtons() {
+            if (!currentPdfViewport) {
+                btnA4Landscape.disabled = true;
+                btnA4Portrait.disabled = true;
+                btnA3Landscape.disabled = true;
+                btnA3Portrait.disabled = true;
+                return;
+            }
+            
+            const pageW = currentPdfViewport.width;
+            const pageH = currentPdfViewport.height;
+            
+            btnA4Landscape.disabled = pageW < PAGE_SIZES.A4_LANDSCAPE.w || pageH < PAGE_SIZES.A4_LANDSCAPE.h;
+            btnA4Portrait.disabled = pageW < PAGE_SIZES.A4_PORTRAIT.w || pageH < PAGE_SIZES.A4_PORTRAIT.h;
+            btnA3Landscape.disabled = pageW < PAGE_SIZES.A3_LANDSCAPE.w || pageH < PAGE_SIZES.A3_LANDSCAPE.h;
+            btnA3Portrait.disabled = pageW < PAGE_SIZES.A3_PORTRAIT.w || pageH < PAGE_SIZES.A3_PORTRAIT.h;
+        }
+
+        // 指定サイズにクロップ領域を設定（見た目の左下(0,0)起点）
+        function setPageSize(width, height) {
+            if (!cropper || !currentPdfViewport) return;
+            
+            // 表示座標(0,0)から指定サイズをPDF座標に変換
+            const pdf = convertDisplayToPdfCoords(0, 0, width, height);
+            
+            const state = { x: pdf.x, y: pdf.y, w: pdf.w, h: pdf.h };
+            pageCropStates.set(currentPage, state);
+            applyStateToCropper(state);
+            pushHistory();
         }
 
         // 現在のページに紐づくクロップ状態を取得（未登録ならページ全体を返却）
@@ -782,6 +995,30 @@
             cropperEventsBound = true;
         }
 
+        // テキストボックス入力イベント
+        [inputX, inputY, inputWidth, inputHeight].forEach(input => {
+            input.addEventListener('input', updateStateFromInputs);
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    updateStateFromInputs();
+                }
+            });
+        });
+
+        // A4/A3ボタンのイベントリスナー
+        btnA4Landscape.addEventListener('click', () => {
+            setPageSize(PAGE_SIZES.A4_LANDSCAPE.w, PAGE_SIZES.A4_LANDSCAPE.h);
+        });
+        btnA4Portrait.addEventListener('click', () => {
+            setPageSize(PAGE_SIZES.A4_PORTRAIT.w, PAGE_SIZES.A4_PORTRAIT.h);
+        });
+        btnA3Landscape.addEventListener('click', () => {
+            setPageSize(PAGE_SIZES.A3_LANDSCAPE.w, PAGE_SIZES.A3_LANDSCAPE.h);
+        });
+        btnA3Portrait.addEventListener('click', () => {
+            setPageSize(PAGE_SIZES.A3_PORTRAIT.w, PAGE_SIZES.A3_PORTRAIT.h);
+        });
+
         if (btnExtractCurrent) {
             btnExtractCurrent.addEventListener('click', async () => {
                 if (!rawFileBuffer || !pdfDocPreview) return;
@@ -862,6 +1099,7 @@
                             pushHistory();
                         }
                         cropperReady = true;
+                        updatePageSizeButtons();
                     },
 
                     crop(event) {
@@ -879,6 +1117,7 @@
                         const state = convertCanvasToPdfCoords(webX, webY, w, h);
 
                         pageCropStates.set(pageNumber, state);
+                        updateInputsFromState(state);
                         if (isUserCropping) {
                             pendingHistoryState = state;
                         } else {
